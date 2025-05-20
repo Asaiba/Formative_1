@@ -1,2 +1,5 @@
-John,Doe,80
-Jane,Smith,65
+John,Smith,88
+Alice,Brown,75
+Mark,Evans,90
+Emma,Davis,65
+Chris,Johnson,82
