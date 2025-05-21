@@ -86,7 +86,7 @@ void menu(Node* root) {
     char searchLastName[NAME_LEN];
     while (1) {
         printf("\n--- MENU ---\n");
-        printf("1. Search for a student by last name\n");
+        printf("1. Search for a student by name\n");
         printf("2. Exit\n");
         printf("Enter your choice: ");
         int choice;

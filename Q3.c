@@ -1,126 +1,197 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Node structure
+#define SIZE 20
+
 typedef struct Node {
     int data;
     struct Node* left;
     struct Node* right;
 } Node;
 
-// Create new node
-Node* createNode(int data) {
-    Node* node = (Node*) malloc(sizeof(Node));
-    node->data = data;
-    node->left = node->right = NULL;
+// Queue for level-order tree construction
+typedef struct QueueNode {
+    Node* treeNode;
+    struct QueueNode* next;
+} QueueNode;
+
+typedef struct {
+    QueueNode* front;
+    QueueNode* rear;
+} Queue;
+
+// Queue operations
+void enqueue(Queue* q, Node* treeNode) {
+    QueueNode* newQNode = (QueueNode*)malloc(sizeof(QueueNode));
+    newQNode->treeNode = treeNode;
+    newQNode->next = NULL;
+    if (q->rear == NULL) {
+        q->front = q->rear = newQNode;
+    } else {
+        q->rear->next = newQNode;
+        q->rear = newQNode;
+    }
+}
+
+Node* dequeue(Queue* q) {
+    if (q->front == NULL) return NULL;
+    QueueNode* temp = q->front;
+    Node* node = temp->treeNode;
+    q->front = q->front->next;
+    if (q->front == NULL) q->rear = NULL;
+    free(temp);
     return node;
 }
 
-// Build binary tree (level order insertion using array)
-Node* buildTree(int arr[], int i, int n) {
-    if (i >= n)
-        return NULL;
-    Node* root = createNode(arr[i]);
-    root->left = buildTree(arr, 2*i + 1, n);
-    root->right = buildTree(arr, 2*i + 2, n);
+int isEmpty(Queue* q) {
+    return q->front == NULL;
+}
+
+// Tree Node creation
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->left = newNode->right = NULL;
+    return newNode;
+}
+
+// Build binary tree from array (level order)
+Node* buildTree(int arr[], int size) {
+    if (size == 0) return NULL;
+
+    Node* root = createNode(arr[0]);
+    Queue q = {NULL, NULL};
+    enqueue(&q, root);
+
+    int i = 1;
+    while (i < size) {
+        Node* current = dequeue(&q);
+
+        if (i < size) {
+            current->left = createNode(arr[i++]);
+            enqueue(&q, current->left);
+        }
+        if (i < size) {
+            current->right = createNode(arr[i++]);
+            enqueue(&q, current->right);
+        }
+    }
     return root;
 }
 
 // Print leaf nodes
 void printLeafNodes(Node* root) {
-    if (!root) return;
-    if (!root->left && !root->right)
+    if (root == NULL) return;
+    if (root->left == NULL && root->right == NULL) {
         printf("%d ", root->data);
+    }
     printLeafNodes(root->left);
     printLeafNodes(root->right);
 }
 
-// Find and print siblings
-void printSiblings(Node* root, int value) {
-    if (!root) return;
-
-    if (root->left && root->right) {
-        if (root->left->data == value)
-            printf("Sibling: %d\n", root->right->data);
-        else if (root->right->data == value)
-            printf("Sibling: %d\n", root->left->data);
-    }
-
-    printSiblings(root->left, value);
-    printSiblings(root->right, value);
-}
-
-// Find and return parent of given node
-Node* findParent(Node* root, int value, Node* parent) {
-    if (!root)
-        return NULL;
-    if (root->data == value)
-        return parent;
-
-    Node* left = findParent(root->left, value, root);
-    if (left) return left;
-
-    return findParent(root->right, value, root);
-}
-
-// Print grandchildren of given node
-void printGrandchildren(Node* node) {
-    if (!node) return;
-
-    if (node->left) {
-        if (node->left->left) printf("%d ", node->left->left->data);
-        if (node->left->right) printf("%d ", node->left->right->data);
-    }
-
-    if (node->right) {
-        if (node->right->left) printf("%d ", node->right->left->data);
-        if (node->right->right) printf("%d ", node->right->right->data);
-    }
-}
-
-// Search a node by value
-Node* findNode(Node* root, int value) {
-    if (!root)
-        return NULL;
-    if (root->data == value)
+// Find parent of a given node
+Node* findParent(Node* root, int childVal) {
+    if (root == NULL) return NULL;
+    if ((root->left && root->left->data == childVal) ||
+        (root->right && root->right->data == childVal)) {
         return root;
-    Node* left = findNode(root->left, value);
-    if (left)
-        return left;
-    return findNode(root->right, value);
+    }
+
+    Node* left = findParent(root->left, childVal);
+    if (left) return left;
+    return findParent(root->right, childVal);
+}
+
+// Find and print siblings of a given node
+void findSiblings(Node* root, int target) {
+    Node* parent = findParent(root, target);
+    if (parent == NULL) {
+        printf("No siblings (or node not found).\n");
+        return;
+    }
+
+    if (parent->left && parent->left->data == target && parent->right)
+        printf("Sibling: %d\n", parent->right->data);
+    else if (parent->right && parent->right->data == target && parent->left)
+        printf("Sibling: %d\n", parent->left->data);
+    else
+        printf("No siblings.\n");
+}
+
+// Print grandchildren of a given node
+void printGrandchildren(Node* root, int target) {
+    if (root == NULL) return;
+
+    if (root->data == target) {
+        if (root->left) {
+            if (root->left->left) printf("Grandchild: %d\n", root->left->left->data);
+            if (root->left->right) printf("Grandchild: %d\n", root->left->right->data);
+        }
+        if (root->right) {
+            if (root->right->left) printf("Grandchild: %d\n", root->right->left->data);
+            if (root->right->right) printf("Grandchild: %d\n", root->right->right->data);
+        }
+        return;
+    }
+
+    printGrandchildren(root->left, target);
+    printGrandchildren(root->right, target);
+}
+
+// Menu interface
+void menu(Node* root) {
+    int choice, val;
+    while (1) {
+        printf("\n--- MENU ---\n");
+        printf("1. Show root node\n");
+        printf("2. Show leaf nodes\n");
+        printf("3. Show siblings of a node\n");
+        printf("4. Show parent of a node\n");
+        printf("5. Show grandchildren of a node\n");
+        printf("6. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Root: %d\n", root->data);
+                break;
+            case 2:
+                printf("Leaf nodes: ");
+                printLeafNodes(root);
+                printf("\n");
+                break;
+            case 3:
+                printf("Enter node value: ");
+                scanf("%d", &val);
+                findSiblings(root, val);
+                break;
+            case 4:
+                printf("Enter node value: ");
+                scanf("%d", &val);
+                {
+                    Node* p = findParent(root, val);
+                    if (p) printf("Parent: %d\n", p->data);
+                    else printf("Parent not found or it's the root.\n");
+                }
+                break;
+            case 5:
+                printf("Enter node value: ");
+                scanf("%d", &val);
+                printGrandchildren(root, val);
+                break;
+            case 6:
+                return;
+            default:
+                printf("Invalid choice.\n");
+        }
+    }
 }
 
 int main() {
-    int arr[20] = {15, 10, 20, 8, 12, 17, 25, 6, 9, 11, 13, 16, 18, 22, 27, 5, 7, 23, 21, 19};
-    int n = 20;
+    int arr[SIZE] = {23, 17, 45, 12, 9, 30, 56, 8, 1, 15, 22, 18, 31, 60, 77, 35, 42, 68, 70, 90};
 
-    Node* root = buildTree(arr, 0, n);
-
-    printf("Root node: %d\n", root->data);
-
-    printf("Leaf nodes: ");
-    printLeafNodes(root);
-    printf("\n");
-
-    int query;
-    printf("Enter a node to find its siblings: ");
-    scanf("%d", &query);
-    printSiblings(root, query);
-
-    Node* parent = findParent(root, query, NULL);
-    if (parent)
-        printf("Parent of %d is: %d\n", query, parent->data);
-    else
-        printf("No parent (might be root or not found).\n");
-
-    Node* target = findNode(root, query);
-    if (target) {
-        printf("Grandchildren of %d: ", query);
-        printGrandchildren(target);
-        printf("\n");
-    } else {
-        printf("Node not found.\n");
-    }
+    Node* root = buildTree(arr, SIZE);
+    menu(root);
 
     return 0;
 }

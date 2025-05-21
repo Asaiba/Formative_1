@@ -1,5 +1,7 @@
+Saiba,Aubin,90
 John,Smith,88
-Alice,Brown,75
-Mark,Evans,90
-Emma,Davis,65
+Collette,Joie,75
+Mark,Evans,50
+Cyusa,Kenny,65
 Chris,Johnson,82
+Kellia,Muzira,77

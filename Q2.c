@@ -65,13 +65,13 @@ void freeList() {
 int main() {
     // Add sample bus stops
     addBusStop("Home");
-    addBusStop("Stop 1");
-    addBusStop("Stop 2");
-    addBusStop("Stop 3");
+    addBusStop("Market (1)");
+    addBusStop("Shop (2)");
+    addBusStop("Gym (3)");
     addBusStop("Campus");
 
     int choice;
-    printf("1. Move Forward\n2. Move Backward\nEnter choice: ");
+    printf("1. Move Form Home\n2. Move From Campus\nEnter choice: ");
     scanf("%d", &choice);
 
     if (choice == 1)
